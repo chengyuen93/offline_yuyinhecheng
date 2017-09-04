@@ -1,0 +1,8 @@
+prefix=/home/chengyuen93/catkin_ws/src/offline_yuyinhecheng/build/devel
+
+Name: offline_yuyinhecheng
+Description: Description of offline_yuyinhecheng
+Version: 0.0.0
+Cflags: -I/home/chengyuen93/catkin_ws/src/offline_yuyinhecheng/include
+Libs: -L/home/chengyuen93/catkin_ws/src/offline_yuyinhecheng/build/devel/lib -loffline_yuyinhecheng
+Requires: roscpp rospy std_msgs
