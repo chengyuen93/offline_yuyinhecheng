@@ -6,6 +6,7 @@
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
+#include "std_msgs/Int32.h"
 #include "ros/package.h"
 
 #include <stdlib.h>
@@ -15,6 +16,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+
 
 // extern "C"
 // {
@@ -90,13 +92,35 @@ wave_pcm_hdr default_wav_hdr =
 	0  
 };
 
-// void say_callback(const std_msgs::String::ConstPtr& msg)
-// {
-// 	std::string txt = msg->data;
-// 	tts(txt.c_str());
-// 	rostopic_pass = 0;
-// 	printf("callback");
-// }
+void say_callback(const std_msgs::String::ConstPtr& msg)
+{
+	std::string txt = msg->data;
+	std::stringstream cmd;
+	std::string output_file = "say_hello.wav";
+	char session_begin_params[MAX_PARAMS_LEN] = {0};
+	snprintf(session_begin_params, MAX_PARAMS_LEN - 1,
+		"engine_type = local, \
+		text_encoding = UTF8, \
+		tts_res_path = %s, \
+		sample_rate = 16000, \
+		speed = 50, volume = 50, pitch = 50, rdn = 2",
+		PARAM_PATH
+		);
+	char oo[100];
+	snprintf(oo, sizeof(oo)-1, "%s%s", DESTI_PATH, output_file.c_str());
+
+	/* 文本合成 */
+	printf("开始合成 ...\n");
+	int ret = text_to_speech(txt.c_str(), oo, session_begin_params);
+	if (MSP_SUCCESS != ret)
+	{
+		printf("text_to_speech failed, error code: %d.\n", ret);
+	}
+	printf("合成完毕\n");
+
+	cmd << "play " << DESTI_PATH << output_file.c_str();
+	system(cmd.str().c_str());
+}
 
 
 bool get_path(int which_path, std::string& ret_path)
@@ -249,10 +273,10 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "robot_say");
 	ros::NodeHandle n;
-	// ros::Subscriber sub = n.subscribe<std_msgs::String>("say", 1, say_callback);
+	ros::Subscriber sub = n.subscribe<std_msgs::String>("edited_text", 1, say_callback);
 
 	int         ret                  = MSP_SUCCESS;
-	const char* login_params         = "appid = 599d2770, work_dir = .";//登录参数,appid与msc库绑定,请勿随意改动
+	const char* login_params         = "appid = 59f80d0b, work_dir = .";//登录参数,appid与msc库绑定,请勿随意改动
 	/*
 	* rdn:           合成音频数字发音方式
 	* volume:        合成音频的音量
@@ -264,8 +288,12 @@ int main(int argc, char** argv)
 	*
 	*/
 
-	std::string input_file;
-	std::string output_file;
+	// std::string input_file;
+	// std::string output_file;
+	// std::stringstream cmd;
+
+	// input_file = "say_hello.txt";
+	// output_file = "say_hello.wav";
 
 	// const char* session_begin_params = "engine_type = local, text_encoding = UTF8, tts_res_path = fo|res/tts/xiaoyan.jet;fo|res/tts/common.jet, sample_rate = 16000, speed = 50, volume = 50, pitch = 50, rdn = 2";
 	// const char* filename             = "tts_sample.wav"; //合成的语音文件名称
@@ -286,20 +314,26 @@ int main(int argc, char** argv)
 	printf("## 高效便捷手段，非常符合信息时代海量数据、动态更新和个性化查询的需求。  ##\n");
 	printf("###########################################################################\n\n");
 
-	printf("%s\n", "input_path:\n");
-	std::cin >> input_file;
+	// printf("%s\n", "input_path:\n");
+	// std::cin >> input_file;
 	
-	printf("%s\n", "output file name:\n");
-	std::cin >> output_file;
+	// printf("%s\n", "output file name:\n");
+	// std::cin >> output_file;
 	
 
-	tts(input_file.c_str(), output_file.c_str());
+	// tts(input_file.c_str(), output_file.c_str());
 
-
+	
+	// cmd << "play " << DESTI_PATH << output_file.c_str();
+	// system(cmd.str().c_str());
+	while (n.ok())
+	{
+		ros::spinOnce();
+	}
 	
 exit:
-	printf("按任意键退出 ...\n");
-	getchar();
+	// printf("按任意键退出 ...\n");
+	// getchar();
 	MSPLogout(); //退出登录
 
 	
